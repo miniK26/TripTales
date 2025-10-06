@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripTales - Your Travel Companion</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF6B35; /* Orange */
+            --secondary-color: #1E88E5; /* Blue */
+            --accent-color: #FFA726;
+            --light-color: #F5F7FA;
+            --dark-color: #2C3E50;
+            --text-color: #333333;
+            --bg-color: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --gradient: linear-gradient(135deg, #FF6B35 0%, #1E88E5 100%);
+        }
+
+        .dark-mode {
+            --primary-color: #FF8A65;
+            --secondary-color: #64B5F6;
+            --accent-color: #FFB74D;
+            --light-color: #37474F;
+            --dark-color: #ECEFF1;
+            --text-color: #ECEFF1;
+            --bg-color: #263238;
+            --card-bg: #37474F;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        /* Header Styles */
+        header {
+            background: var(--gradient);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: #FFEB3B;
+        }
+
+        .tagline {
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 2px;
+            opacity: 0.9;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 1.5rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(15deg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient), 
+                        url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 5rem 1rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-box button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 2rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-box button:hover {
+            background-color: #E55A2B;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            position: relative;
+            font-size: 2rem;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--gradient);
+            margin: 0.5rem auto;
+            border-radius: 2px;
+        }
+
+        .dark-mode .section-title {
+            color: var(--accent-color);
+        }
+
+        /* Cards and Sections */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dark-mode .card h2 {
+            color: var(--accent-color);
+        }
+
+        /* Photos Grid */
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .photos-grid a {
+            display: block;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 200px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .photos-grid a:hover {
+            transform: scale(1.05);
+        }
+
+        .photos-grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Weather Section */
+        .weather-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .weather-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+            border-top: 4px solid var(--secondary-color);
+        }
+
+        .weather-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .weather-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .dark-mode .weather-card h3 {
+            color: var(--accent-color);
+        }
+
+        .weather-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .temp {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+            color: var(--secondary-color);
+        }
+
+        /* Map Section */
+        .map-wrapper {
+            position: relative;
+        }
+
+        #mapContainer {
+            height: 500px;
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            z-index: 1;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Map Controls */
+        .map-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .map-controls button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .map-controls button:hover {
+            background-color: #1565C0;
+            transform: translateY(-2px);
+        }
+
+        /* Improved Map Legend */
+        .map-legend {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--card-bg);
+            padding: 12px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border: 1px solid rgba(0,0,0,0.1);
+            max-width: 180px;
+            backdrop-filter: blur(5px);
+        }
+
+        .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .legend-header h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+        }
+
+        .toggle-legend {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 0.8rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+
+        .toggle-legend:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .legend-content {
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .route-controls {
+            margin-top: 1rem;
+            padding: 1.5rem;
+            background-color: var(--light-color);
+            border-radius: 12px;
+        }
+
+        .route-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .route-inputs input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        /* Favorites Section */
+        .favorites-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .favorite-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .favorite-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Notes Section */
+        .notes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #notesInput {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            resize: vertical;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-family: inherit;
+        }
+
+        .save-btn {
+            align-self: flex-end;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        #savedNotes {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--light-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Forecast Section */
+        .forecast-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .forecast-card {
+            min-width: 150px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+            border-top: 3px solid var(--secondary-color);
+        }
+
+        .forecast-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 50px;
+            height: 50px;
+            margin: 2rem auto;
+            border: 5px solid rgba(255, 107, 53, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--gradient);
+            color: white;
+            padding: 3rem 0 1.5rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            list-style: none;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-links li {
+            margin: 0 1rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Trip Collections */
+        .collections {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .collection-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .collection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .collection-img {
+            height: 160px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .collection-content {
+            padding: 1.2rem;
+        }
+
+        .collection-content h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                margin-top: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links li {
+                margin: 0 0.8rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .weather-info {
+                flex-direction: column;
+            }
+            
+            .photos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            #mapContainer {
+                height: 400px;
+            }
+            
+            .map-controls {
+                flex-direction: column;
+            }
+            
+            .route-inputs {
+                flex-direction: column;
+            }
+            
+            .section-title {
+                font-size: 1.6rem;
+            }
+            
+            .map-legend {
+                top: 5px;
+                left: 5px;
+                max-width: 160px;
+                padding: 10px;
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Trip Planner */
+        .trip-planner {
+            background: var(--gradient);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .trip-planner h2 {
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .planner-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .planner-option {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(5px);
+        }
+
+        .planner-option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo-container">
+                    <a href="#" class="logo">Trip<span>Tales</span></a>
+                    <div class="tagline">Every journey tells a story.</div>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#photos"><i class="fas fa-images"></i> Photos</a></li>
+                    <li><a href="#weather"><i class="fas fa-cloud-sun"></i> Weather</a></li>
+                    <li><a href="#map"><i class="fas fa-map-marked-alt"></i> Map</a></li>
+                    <li><a href="#favorites"><i class="fas fa-heart"></i> Favorites</a></li>
+                    <li><a href="#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+                </ul>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-content">
+            <h1>Discover Your Next Adventure</h1>
+            <p>Explore breathtaking destinations, check weather conditions, and plan your perfect trip with TripTales.</p>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search for a destination...">
+                <button id="searchBtn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container main-content">
+        <!-- Trip Planner -->
+        <section class="trip-planner">
+            <h2>Plan Your Perfect Trip</h2>
+            <p>Create custom itineraries, discover hidden gems, and share your travel stories</p>
+            <div class="planner-options">
+                <div class="planner-option">
+                    <i class="fas fa-route"></i> Road Trips
+                </div>
+                <div class="planner-option">
+                    <i class="fas fa-city"></i> City Breaks
+                </div>
+                <div class="planner-option">
+                    <i class="fas fa-umbrella-beach"></i> Beach Holidays
+                </div>
+                <div class="planner-option">
+                    <i class="fas fa-hiking"></i> Adventure Tours
+                </div>
+            </div>
+        </section>
+
+        <!-- Trip Collections -->
+        <section class="card">
+            <h2><i class="fas fa-suitcase-rolling"></i> Featured Trip Collections</h2>
+            <div class="collections">
+                <div class="collection-card">
+                    <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="European Capitals" class="collection-img">
+                    <div class="collection-content">
+                        <h3>European Capitals</h3>
+                        <p>Explore the historic capitals of Europe</p>
+                    </div>
+                </div>
+                <div class="collection-card">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Tropical Paradises" class="collection-img">
+                    <div class="collection-content">
+                        <h3>Tropical Paradises</h3>
+                        <p>Relax in the world's most beautiful beaches</p>
+                    </div>
+                </div>
+                <div class="collection-card">
+                    <img src="https://images.unsplash.com/photo-1464822759843-44bc6d5e034f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Mountain Adventures" class="collection-img">
+                    <div class="collection-content">
+                        <h3>Mountain Adventures</h3>
+                        <p>Challenge yourself with epic hikes</p>
+                    </div>
+                </div>
+                <div class="collection-card">
+                    <img src="https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Foodie Journeys" class="collection-img">
+                    <div class="collection-content">
+                        <h3>Foodie Journeys</h3>
+                        <p>Taste your way around the world</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Photos Section -->
+        <section id="photos" class="card">
+            <h2><i class="fas fa-images"></i> Destination Photos</h2>
+            <div class="photos-grid" id="photosContainer">
+                <!-- Photos will be dynamically added here -->
+            </div>
+        </section>
+
+        <!-- Weather Section -->
+        <section id="weather" class="card">
+            <h2><i class="fas fa-cloud-sun"></i> Weather Information</h2>
+            <div class="weather-info" id="weatherContainer">
+                <!-- Weather info will be dynamically added here -->
+            </div>
+            
+            <h3>5-Day Forecast</h3>
+            <div class="forecast-container" id="forecastContainer">
+                <!-- Forecast will be dynamically added here -->
+            </div>
+        </section>
+
+        <!-- Map Section -->
+        <section id="map" class="card">
+            <h2><i class="fas fa-map-marked-alt"></i> Interactive Map & Route Planner</h2>
+            
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button id="locateMe"><i class="fas fa-location-arrow"></i> Locate Me</button>
+                <button id="resetView"><i class="fas fa-globe-americas"></i> Reset View</button>
+                <button id="toggleSatellite"><i class="fas fa-satellite"></i> Satellite View</button>
+                <button id="clearRoute"><i class="fas fa-trash-alt"></i> Clear Route</button>
+            </div>
+            
+            <!-- Map Container with Improved Legend -->
+            <div class="map-wrapper">
+                <div id="mapContainer"></div>
+                <div class="map-legend">
+                    <div class="legend-header">
+                        <h4>Map Legend</h4>
+                        <button class="toggle-legend" id="toggleLegend">Hide</button>
+                    </div>
+                    <div class="legend-content" id="legendContent">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #e74c3c;"></div>
+                            <span>Current Location</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3498db;"></div>
+                            <span>Destination</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #2ecc71;"></div>
+                            <span>Route</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Route Planning -->
+            <div class="route-controls">
+                <h3>Plan Your Route</h3>
+                <div class="route-inputs">
+                    <input type="text" id="startPoint" placeholder="Starting point (optional)">
+                    <input type="text" id="endPoint" placeholder="Destination (optional)">
+                    <button id="planRoute" class="save-btn"><i class="fas fa-route"></i> Plan Route</button>
+                </div>
+                <div id="routeInfo"></div>
+            </div>
+        </section>
+
+        <!-- Favorites Section -->
+        <section id="favorites" class="card">
+            <h2><i class="fas fa-heart"></i> Favorite Destinations</h2>
+            <div class="favorites-container" id="favoritesContainer">
+                <!-- Favorites will be dynamically added here -->
+            </div>
+        </section>
+
+        <!-- Notes Section -->
+        <section id="notes" class="card">
+            <h2><i class="fas fa-sticky-note"></i> Travel Notes</h2>
+            <div class="notes-container">
+                <textarea id="notesInput" placeholder="Add your notes about this destination..."></textarea>
+                <button class="save-btn" onclick="saveNotes()"><i class="fas fa-save"></i> Save Notes</button>
+                <div id="savedNotes"></div>
+            </div>
+        </section>
+
+        <!-- Loading Spinner -->
+        <div class="spinner" id="loadingSpinner"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">Trip<span>Tales</span></div>
+                <p class="tagline">Every journey tells a story.</p>
+                <ul class="footer-links">
+                    <li><a href="#photos">Photos</a></li>
+                    <li><a href="#weather">Weather</a></li>
+                    <li><a href="#map">Map</a></li>
+                    <li><a href="#favorites">Favorites</a></li>
+                    <li><a href="#notes">Notes</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+                <p class="copyright">&copy; 2023 TripTales. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script>
+        // Trip Tales - Enhanced JavaScript File
+        // Includes advanced features: weather, photos, favorites, notes, dark mode, route planner, climate data, sunrise/sunset, notifications, and offline mode
+
+        // Replace with your API keys
+        const UNSPLASH_KEY = "2-EdoMsXKrBv-qkpKjSYXDrNU1ujdjRMFQg0VNFd1JA";
+        const WEATHER_KEY = "0a134140c0f37053eabe2bca6ff8c617";
+
+        let currentCity = "";
+        let map = null;
+        let currentMarker;
+        let routingControl;
+        let isSatelliteView = false;
+        let standardTiles, satelliteTiles;
+        let isLegendVisible = true;
+
+        // DOM Elements
+        const searchInput = document.getElementById("searchInput");
+        const searchBtn = document.getElementById("searchBtn");
+        const photosContainer = document.getElementById("photosContainer");
+        const weatherContainer = document.getElementById("weatherContainer");
+        const forecastContainer = document.getElementById("forecastContainer");
+        const favoritesContainer = document.getElementById("favoritesContainer");
+        const notesInput = document.getElementById("notesInput");
+        const savedNotes = document.getElementById("savedNotes");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        const themeToggle = document.getElementById("themeToggle");
+        const notification = document.getElementById("notification");
+        const toggleLegend = document.getElementById("toggleLegend");
+        const legendContent = document.getElementById("legendContent");
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            initializeMap();
+            setupMapControls();
+            
+            // Load default destination
+            searchInput.value = "Paris";
+            searchDestination();
+            
+            // Set up event listeners
+            searchBtn.addEventListener('click', searchDestination);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchDestination();
+            });
+            
+            // Legend toggle
+            toggleLegend.addEventListener('click', function() {
+                if (isLegendVisible) {
+                    legendContent.style.display = 'none';
+                    toggleLegend.textContent = 'Show';
+                    isLegendVisible = false;
+                } else {
+                    legendContent.style.display = 'block';
+                    toggleLegend.textContent = 'Hide';
+                    isLegendVisible = true;
+                }
+            });
+            
+            // Request notification permission
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+            
+            // Add event listeners to planner options
+            document.querySelectorAll('.planner-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    showNotification(`Planning a ${this.textContent.trim()} trip!`, "info");
+                });
+            });
+        });
+
+        // Initialize the map
+        function initializeMap(lat = 20.5937, lng = 78.9629, zoom = 5) {
+            // Create map instance
+            map = L.map('mapContainer').setView([lat, lng], zoom);
+            
+            // Define tile layers
+            standardTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            });
+            
+            satelliteTiles = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: '© Google Maps'
+            });
+            
+            // Add standard tiles by default
+            standardTiles.addTo(map);
+            
+            // Add scale control
+            L.control.scale().addTo(map);
+        }
+
+        // Setup map control event listeners
+        function setupMapControls() {
+            // Locate Me button
+            document.getElementById('locateMe').addEventListener('click', locateUser);
+            
+            // Reset View button
+            document.getElementById('resetView').addEventListener('click', resetMapView);
+            
+            // Toggle Satellite View
+            document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
+            
+            // Clear Route
+            document.getElementById('clearRoute').addEventListener('click', clearRoute);
+            
+            // Plan Route
+            document.getElementById('planRoute').addEventListener('click', planRoute);
+        }
+
+        // 🔍 Search destination
+        async function searchDestination() {
+            const city = searchInput.value.trim();
+            if (!city) return;
+            
+            showLoading();
+            currentCity = city;
+
+            try {
+                await Promise.all([
+                    fetchPhotos(city),
+                    fetchWeather(city)
+                ]);
+                
+                saveFavorite(city);
+                loadNotes();
+            } catch (error) {
+                console.error("Error searching destination:", error);
+                showNotification("Error fetching data. Please try again.", "error");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 📸 Fetch photos from Unsplash
+        async function fetchPhotos(city) {
+            try {
+                const res = await fetch(`https://api.unsplash.com/search/photos?query=${city}&client_id=${UNSPLASH_KEY}`);
+                const data = await res.json();
+                
+                photosContainer.innerHTML = "";
+                
+                if (data.results.length === 0) {
+                    photosContainer.innerHTML = `<p>No photos found for ${city}. Try another destination.</p>`;
+                    return;
+                }
+                
+                data.results.slice(0, 6).forEach(photo => {
+                    const a = document.createElement("a");
+                    a.href = photo.urls.regular;
+                    a.setAttribute("data-lightbox", "gallery");
+                    a.setAttribute("data-title", `Photo of ${city} by ${photo.user.name}`);
+                    
+                    const img = document.createElement("img");
+                    img.src = photo.urls.small;
+                    img.alt = `Photo of ${city}`;
+                    
+                    a.appendChild(img);
+                    photosContainer.appendChild(a);
+                });
+            } catch (error) {
+                console.error("Error fetching photos:", error);
+                photosContainer.innerHTML = `<p>Error loading photos. Please try again.</p>`;
+            }
+        }
+
+        // ☀️ Fetch weather + forecast + sunrise/sunset
+        async function fetchWeather(city) {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_KEY}&units=metric`);
+                const data = await res.json();
+                
+                if (data.cod !== 200) {
+                    throw new Error(data.message);
+                }
+                
+                // Update weather container
+                weatherContainer.innerHTML = `
+                    <div class="weather-card">
+                        <h3>Current Weather</h3>
+                        <div class="weather-icon">${getWeatherIcon(data.weather[0].main)}</div>
+                        <div class="temp">${Math.round(data.main.temp)}°C</div>
+                        <p>${data.weather[0].description}</p>
+                        <p>💧 Humidity: ${data.main.humidity}%</p>
+                        <p>💨 Wind: ${data.wind.speed} m/s</p>
+                    </div>
+                    <div class="weather-card">
+                        <h3>Location</h3>
+                        <p>${data.name}, ${data.sys.country}</p>
+                        <p>📍 Lat: ${data.coord.lat.toFixed(2)}</p>
+                        <p>📍 Lon: ${data.coord.lon.toFixed(2)}</p>
+                    </div>
+                `;
+                
+                // Show destination on map
+                showDestinationOnMap(data.coord.lat, data.coord.lon, city);
+                
+                // Fetch additional data
+                await Promise.all([
+                    fetchSunriseSunset(data.coord.lat, data.coord.lon),
+                    fetchForecast(city)
+                ]);
+                
+                // Send weather alert
+                sendWeatherAlert(data.main.temp);
+                
+            } catch (error) {
+                console.error("Error fetching weather:", error);
+                weatherContainer.innerHTML = `<p>Error loading weather data: ${error.message}</p>`;
+            }
+        }
+
+        // 🌅 Fetch Sunrise and Sunset Times
+        async function fetchSunriseSunset(lat, lon) {
+            try {
+                const res = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&formatted=0`);
+                const data = await res.json();
+                
+                if (data.status !== "OK") {
+                    throw new Error(data.status);
+                }
+                
+                const sunriseCard = document.createElement("div");
+                sunriseCard.className = "weather-card";
+                sunriseCard.innerHTML = `
+                    <h3>Sunrise & Sunset</h3>
+                    <div class="weather-icon">🌅</div>
+                    <p>Sunrise: ${new Date(data.results.sunrise).toLocaleTimeString()}</p>
+                    <div class="weather-icon">🌇</div>
+                    <p>Sunset: ${new Date(data.results.sunset).toLocaleTimeString()}</p>
+                `;
+                
+                weatherContainer.appendChild(sunriseCard);
+            } catch (error) {
+                console.error("Error fetching sunrise/sunset:", error);
+            }
+        }
+
+        // 📊 Fetch 5-day forecast
+        async function fetchForecast(city) {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${WEATHER_KEY}&units=metric`);
+                const data = await res.json();
+                
+                forecastContainer.innerHTML = "";
+                
+                // Filter to get one forecast per day
+                const dailyForecasts = data.list.filter((item, index) => index % 8 === 0);
+                
+                dailyForecasts.forEach(day => {
+                    const date = new Date(day.dt * 1000);
+                    const card = document.createElement("div");
+                    card.className = "forecast-card";
+                    card.innerHTML = `
+                        <strong>${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong>
+                        <div class="weather-icon">${getWeatherIcon(day.weather[0].main)}</div>
+                        <div class="temp">${Math.round(day.main.temp)}°C</div>
+                        <p>${day.weather[0].description}</p>
+                    `;
+                    forecastContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error fetching forecast:", error);
+                forecastContainer.innerHTML = `<p>Error loading forecast data.</p>`;
+            }
+        }
+
+        // Locate user and center map
+        function locateUser() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser");
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Remove existing current location marker
+                    if (currentMarker) {
+                        map.removeLayer(currentMarker);
+                    }
+                    
+                    // Add new marker for current location
+                    currentMarker = L.marker([lat, lng])
+                        .addTo(map)
+                        .bindPopup("You are here!")
+                        .openPopup();
+                    
+                    // Center map on user's location
+                    map.setView([lat, lng], 13);
+                    
+                    // Add circle for accuracy
+                    L.circle([lat, lng], {
+                        color: 'blue',
+                        fillColor: '#30f',
+                        fillOpacity: 0.1,
+                        radius: position.coords.accuracy / 2
+                    }).addTo(map);
+                    
+                    showNotification("Your location has been found!");
+                },
+                function(error) {
+                    alert("Unable to get your location: " + error.message);
+                }
+            );
+        }
+
+        // Reset map to default view
+        function resetMapView() {
+            map.setView([20.5937, 78.9629], 5);
+            showNotification("Map view reset");
+        }
+
+        // Toggle between standard and satellite view
+        function toggleSatelliteView() {
+            if (isSatelliteView) {
+                map.removeLayer(satelliteTiles);
+                standardTiles.addTo(map);
+                document.getElementById('toggleSatellite').innerHTML = '<i class="fas fa-satellite"></i> Satellite View';
+            } else {
+                map.removeLayer(standardTiles);
+                satelliteTiles.addTo(map);
+                document.getElementById('toggleSatellite').innerHTML = '<i class="fas fa-globe-americas"></i> Standard View';
+            }
+            isSatelliteView = !isSatelliteView;
+        }
+
+        // Show destination on map
+        function showDestinationOnMap(lat, lng, cityName) {
+            // Clear existing markers except current location
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker && layer !== currentMarker) {
+                    map.removeLayer(layer);
+                }
+            });
+            
+            // Clear existing routes
+            clearRoute();
+            
+            // Add destination marker
+            const destinationMarker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(`<b>${cityName}</b>`)
+                .openPopup();
+            
+            // Center map on destination
+            map.setView([lat, lng], 10);
+            
+            // Auto-fill destination in route planner
+            document.getElementById('endPoint').value = cityName;
+        }
+
+        // Plan route between two points
+        function planRoute() {
+            const startPoint = document.getElementById('startPoint').value;
+            const endPoint = document.getElementById('endPoint').value;
+            
+            if (!endPoint) {
+                alert("Please enter at least a destination");
+                return;
+            }
+            
+            // For demo purposes, we'll just show a simple route
+            // In a real app, you would use a routing service like OSRM or Mapbox
+            showNotification("Route planning is a premium feature. Upgrade to access this functionality.", "info");
+            
+            // Clear existing route
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+            
+            // Simple demo route (straight line)
+            if (currentMarker) {
+                const startLatLng = currentMarker.getLatLng();
+                const endLatLng = map.getCenter();
+                
+                // Create a simple polyline for demo
+                const routeLine = L.polyline([startLatLng, endLatLng], {
+                    color: '#2ecc71',
+                    weight: 5,
+                    opacity: 0.7
+                }).addTo(map);
+                
+                // Display route information
+                const routeInfo = document.getElementById('routeInfo');
+                routeInfo.innerHTML = `
+                    <p><strong>Demo Route Information:</strong></p>
+                    <p>This is a demonstration of route planning functionality.</p>
+                    <p>In the full version, you would see actual distance and time calculations.</p>
+                `;
+                
+                // Store reference to remove later
+                routingControl = routeLine;
+            }
+        }
+
+        // Clear the current route
+        function clearRoute() {
+            if (routingControl) {
+                map.removeLayer(routingControl);
+                routingControl = null;
+            }
+            document.getElementById('routeInfo').innerHTML = '';
+            document.getElementById('startPoint').value = '';
+            document.getElementById('endPoint').value = currentCity || '';
+            showNotification("Route cleared");
+        }
+
+        // 💖 Favorites
+        function saveFavorite(city) {
+            let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            if (!favorites.includes(city)) {
+                favorites.push(city);
+                localStorage.setItem("favorites", JSON.stringify(favorites));
+                showNotification(`${city} added to favorites!`);
+            }
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            favoritesContainer.innerHTML = "";
+            
+            if (favorites.length === 0) {
+                favoritesContainer.innerHTML = "<p>No favorites yet. Search for destinations to add them to favorites.</p>";
+                return;
+            }
+            
+            favorites.forEach(city => {
+                const btn = document.createElement("button");
+                btn.className = "favorite-btn";
+                btn.innerHTML = `<i class="fas fa-heart"></i> ${city}`;
+                btn.onclick = () => {
+                    searchInput.value = city;
+                    searchDestination();
+                };
+                favoritesContainer.appendChild(btn);
+            });
+        }
+
+        // 📝 Notes
+        function saveNotes() {
+            const notes = notesInput.value;
+            let saved = JSON.parse(localStorage.getItem("notes")) || {};
+            saved[currentCity] = notes;
+            localStorage.setItem("notes", JSON.stringify(saved));
+            loadNotes();
+            showNotification("Notes saved!");
+        }
+
+        function loadNotes() {
+            let saved = JSON.parse(localStorage.getItem("notes")) || {};
+            notesInput.value = saved[currentCity] || "";
+            savedNotes.textContent = saved[currentCity] ? `Saved notes for ${currentCity}: ${saved[currentCity]}` : "";
+        }
+
+        // 🌙 Theme Toggle
+        themeToggle.onclick = () => {
+            document.body.classList.toggle("dark-mode");
+            if (document.body.classList.contains("dark-mode")) {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        };
+
+        // 🔔 Smart Notifications
+        function sendWeatherAlert(temp) {
+            if (temp < 10) {
+                showNotification("❄️ Cold alert! It's quite chilly today!", "info");
+                if (Notification.permission === "granted") {
+                    new Notification("❄️ Cold alert!", { body: "It's quite chilly today!" });
+                }
+            } else if (temp > 35) {
+                showNotification("🔥 Heat alert! Stay hydrated! It's hot outside.", "warning");
+                if (Notification.permission === "granted") {
+                    new Notification("🔥 Heat alert!", { body: "Stay hydrated! It's hot outside." });
+                }
+            }
+        }
+
+        // Show custom notification
+        function showNotification(message, type = "info") {
+            notification.innerHTML = '';
+            
+            let icon = 'fas fa-info-circle';
+            if (type === "error") {
+                icon = 'fas fa-exclamation-triangle';
+                notification.style.backgroundColor = "#e74c3c";
+            } else if (type === "warning") {
+                icon = 'fas fa-exclamation-circle';
+                notification.style.backgroundColor = "#f39c12";
+            } else {
+                icon = 'fas fa-check-circle';
+                notification.style.backgroundColor = "#2ecc71";
+            }
+            
+            notification.innerHTML = `<i class="${icon}"></i> ${message}`;
+            notification.className = "notification";
+            notification.classList.add("show");
+            
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        // Get weather icon based on condition
+        function getWeatherIcon(condition) {
+            const iconMap = {
+                'Clear': '☀️',
+                'Clouds': '☁️',
+                'Rain': '🌧️',
+                'Drizzle': '🌦️',
+                'Thunderstorm': '⛈️',
+                'Snow': '❄️',
+                'Mist': '🌫️',
+                'Smoke': '🌫️',
+                'Haze': '🌫️',
+                'Dust': '🌫️',
+                'Fog': '🌫️',
+                'Sand': '🌫️',
+                'Ash': '🌫️',
+                'Squall': '💨',
+                'Tornado': '🌪️'
+            };
+            
+            return iconMap[condition] || '🌤️';
+        }
+
+        // Show/hide loading spinner
+        function showLoading() {
+            loadingSpinner.style.display = "block";
+        }
+
+        function hideLoading() {
+            loadingSpinner.style.display = "none";
+        }
+
+        // 🚀 Load favorites on page load
+        window.onload = renderFavorites;
+    </script>
+</body>
+</html>
